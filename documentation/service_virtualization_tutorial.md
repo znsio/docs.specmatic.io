@@ -51,7 +51,8 @@ Service Virtualization
   - [Precedence Across Types Of Examples](#precedence-across-types-of-examples)
   - [Checking Health Status Of Stub Server](#checking-health-status-of-stub-server)
       - [Example `curl` Request:](#example-curl-request)
-    - [Running Specmatic Stubs on Different BaseURLs](#running-specmatic-stubs-on-different-baseurls)
+  - [Running Specmatic Stub with a Prefixed Base Path](#running-specmatic-stub-with-a-prefixed-base-path)
+  - [Running Specmatic Stubs on Different BaseURLs](#running-specmatic-stubs-on-different-baseurls)
       - [Overview](#overview-1)
       - [Directory Structure](#directory-structure)
       - [Specmatic Configuration](#specmatic-configuration)
@@ -1779,7 +1780,26 @@ paths:
                     example: UP
 ```
 
-### Running Specmatic Stubs on Different BaseURLs
+## Running Specmatic Stub with a Prefixed Base Path
+
+When building APIs, it is common practice to organize endpoints under a base path, such as `/api/v2` for versioned APIs. To support this, Specmatic allows you to configure a base URL without necessitating changes to the underlying contract paths, this can easily be achieved by setting the `baseUrl` field in the Specmatic Config.
+
+```yaml
+version: 2
+contracts:
+  - consumes:
+    - baseUrl: http://localhost:9000/api/v2
+      specs:
+        - path/to/specification.yml
+```
+
+In this setup:
+- The stub server will be accessible at `http://localhost:9000/api/v2/`
+- All endpoints defined in your contract will automatically be available under the `/api/v2` prefix.
+
+For example, if your contract defines an endpoint at `/users`, it will be available at `http://localhost:9000/api/v2/users` when stubbed, without requiring any modifications to the contract itself, Further information regarding `baseUrl` can be found in the section below, including details on how to run multiple stub servers with different base URLs.
+
+## Running Specmatic Stubs on Different BaseURLs
 
 #### Overview
 This setup demonstrates how to run Specmatic stubs on different baseURLs for different specifications. This allows serving different APIs on their respective baseURLs while keeping their examples specific to each specification.
