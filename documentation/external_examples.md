@@ -18,6 +18,11 @@ nav_order: 7
   - [Creating Examples Manually](#creating-examples-manually)
   - [Using CLI to Validate Examples](#using-cli-to-validate-examples)
   - [Example Format](#example-format)
+  - [Using Dictionary Values In Examples](#using-dictionary-values-in-examples)
+      - [Example](#example)
+      - [Dictionary](#dictionary)
+      - [Starting the Stub Server](#starting-the-stub-server)
+      - [Making a PATCH Request](#making-a-patch-request)
   - [Advanced Usage](#advanced-usage)
     - [Working with Multiple Specifications](#working-with-multiple-specifications)
     - [Custom Example Directory](#custom-example-directory)
@@ -267,6 +272,94 @@ Examples can be externalized to `json` files as seen in the above section, You w
 **Notes on the `response` format:**
 
 1. In contract tests, only the `status` field is required. Other fields will be ignored if provided such as headers, body etc.
+
+
+## Using Dictionary Values In Examples
+
+You can populate specific values in an example and allow Specmatic to reference the dictionary for the remaining values.
+This will save you the effort of coming up with good example values for keys you must provide but may not particularly care about.
+
+#### Example
+
+To see this in action, let's take a look at an example that uses dictionary values.
+Create a new example file in the `employee_details_examples` directory named `patch_employee.json` with the following contents:
+
+```json
+{
+  "http-request": {
+    "method": "PATCH",
+    "path": "/employees",
+    "body": {
+      "name": "Julie",
+      "department": "Sales",
+      "designation": "Associate"
+    }
+  },
+  "http-response": {
+    "status": 200,
+    "body": {
+      "id": "(number)",
+      "name": "Julie",
+      "employeeCode": "(string)",
+      "department": "Sales",
+      "designation": "Associate"
+    }
+  }
+}
+```
+
+#### Dictionary
+
+Create a new dictionary file in the root directory named `employee_details_dictionary.yaml` with the following contents:
+
+```yaml
+Employee.id: 10
+Employee.employeeCode: EMP1234
+```
+
+#### Starting the Stub Server
+
+Start the stub server with the following command:
+
+{% tabs test %}
+{% tab test java %}
+```shell
+java -jar specmatic.jar stub employee_details.yaml
+```
+{% endtab %}
+{% tab test npm %}
+```shell
+npx specmatic stub employee_details.yaml
+```
+{% endtab %}
+{% tab test docker %}
+```shell
+docker run --rm -p 9000:9000 -v "$(pwd)/employee_details.yaml:/usr/src/app/employee_details.yaml" -v "$(pwd)/employee_details_examples:/usr/src/app/employee_details_examples" -v "$(pwd)/employee_details_dictionary.yaml:/usr/src/app/employee_details_dictionary.yaml" znsio/specmatic stub "employee_details.yaml"
+```
+{% endtab %}
+{% endtabs %}
+
+#### Making a PATCH Request
+
+Execute the following curl command:
+
+```shell
+curl -X PATCH -H "Content-Type: application/json" -d "{\"name\": \"Julie\", \"department\": \"Sales\", \"designation\": \"Associate\"}" http://localhost:9000/employees
+```
+
+Observe the following response:
+```shell
+{
+    "id": 10,
+    "name": "Julie",
+    "employeeCode": "EMP1234",
+    "department": "Sales",
+    "designation": "Associate"
+}
+```
+
+**Note:** While the example provided specific values for `name`, `department`, and `designation`, the fields for `id` and `employeeCode` were not explicitly defined.
+As such, the values returned for those fields were derived from the dictionary.
 
 ## Advanced Usage
 
